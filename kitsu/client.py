@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -30,7 +31,7 @@ from typing import Any, List, Optional, Union
 import aiohttp
 
 from .errors import BadRequest, HTTPException, NotFound
-from .models import Anime, Manga
+from .models import Anime
 
 __all__ = ("Client",)
 __log__: logging.Logger = logging.getLogger(__name__)
@@ -85,9 +86,9 @@ class Client:
             if response.status == 200:
                 return data
             if response.status == 400:
-                raise BadRequest(response, data["error"])
+                raise BadRequest(response, data["error_description"])
             if response.status == 404:
-                raise NotFound(response, data["error"])
+                raise NotFound(response, data["error_description"])
 
             raise HTTPException(response, await response.text(), response.status)
 
@@ -95,7 +96,6 @@ class Client:
         """Performs a GET request to the Kitsu API"""
 
         headers = kwargs.pop("headers", {})
-
         headers["Accept"] = "application/vnd.api+json"
         headers["Content-Type"] = "application/vnd.api+json"
         headers["User-Agent"] = "Kitsu.py (https://github.com/SageTendo/kitsu.py)"
@@ -146,9 +146,10 @@ class Client:
         created_at = datetime.fromtimestamp(data["created_at"])
         self._token_expires = created_at + timedelta(seconds=data["expires_in"])
 
-    async def get_anime(self, anime_id: int, *, raw: bool = False) -> Union[Anime, dict]:
+    async def get_anime(self, anime_id: int, *, raw: bool = False, include_nsfw: bool = False) -> Union[Anime, dict]:
         """Get information of an anime by ID"""
-        data = await self._get(url=f"{BASE}/anime/{anime_id}")
+        headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
+        data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers)
 
         if raw:
             return data["data"]
@@ -156,10 +157,13 @@ class Client:
         return Anime(payload=data["data"])
 
     async def search_anime(
-        self, query: str, limit: int = 1, *, raw: bool = False
+        self, query: str, limit: int = 1, *, raw: bool = False, include_nsfw: bool = False
     ) -> Optional[Union[Anime, List[Anime], dict]]:
         """Search for an anime"""
-        data = await self._get(url=f"{BASE}/anime", params={"filter[text]": query, "page[limit]": str(limit)})
+        headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
+        data = await self._get(
+            url=f"{BASE}/anime", params={"filter[text]": query, "page[limit]": str(limit)}, headers=headers
+        )
 
         if raw:
             return data
@@ -181,31 +185,6 @@ class Client:
             return None
         else:
             return [Anime(payload=payload) for payload in data["data"]]
-
-    async def get_manga(self, manga_id: int, *, raw: bool = False) -> Union[Manga, dict]:
-        """Get information of an anime by ID"""
-        data = await self._get(url=f"{BASE}/manga/{manga_id}")
-
-        if raw:
-            return data["data"]
-
-        return Manga(payload=data["data"])
-
-    async def search_manga(
-        self, query: str, limit: int = 1, *, raw: bool = False
-    ) -> Optional[Union[Manga, List[Manga], dict]]:
-        """Search for a manga"""
-        data = await self._get(url=f"{BASE}/manga", params={"filter[text]": query, "page[limit]": str(limit)})
-
-        if raw:
-            return data
-
-        if not data["data"]:
-            return None
-        elif len(data["data"]) == 1:
-            return Manga(data["data"][0])
-        else:
-            return [Manga(payload=payload) for payload in data["data"]]
 
     async def close(self) -> None:
         """Closes the internal http session"""
