@@ -25,11 +25,36 @@ SOFTWARE.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Dict, List, Literal, Optional
+from typing import Dict, Iterator, List, Literal, Optional
 
 from dateutil.parser import isoparse
 
 __all__ = ["Anime"]
+
+
+class AnimeList:
+    def __init__(self, payload: Optional[list[dict]] = None) -> None:
+        self._payload: list[dict] = payload or []
+
+    def __repr__(self) -> str:
+        return f"<AnimeList length={len(self._payload)}>"
+
+    def __len__(self) -> int:
+        return len(self._payload)
+
+    def __iter__(self) -> Iterator[Anime]:
+        for anime in self._payload:
+            yield Anime(anime)
+
+    def __getitem__(self, index: int) -> Anime:
+        return Anime(self._payload[index])
+
+    def __contains__(self, anime: Anime) -> bool:
+        return anime.id in self._payload
+
+    @property
+    def raw(self) -> list[dict]:
+        return self._payload
 
 
 class Anime:
@@ -216,3 +241,7 @@ class Anime:
     @property
     def nsfw(self) -> Optional[bool]:
         return self._payload["attributes"].get("nsfw", None)
+
+    @property
+    def raw(self) -> dict:
+        return self._payload

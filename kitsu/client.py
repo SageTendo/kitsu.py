@@ -31,7 +31,7 @@ from typing import Any, List, Optional, Union
 import aiohttp
 
 from .errors import BadRequest, HTTPException, NotFound
-from .models import Anime
+from .models import Anime, AnimeList
 
 __all__ = ("Client",)
 __log__: logging.Logger = logging.getLogger(__name__)
@@ -146,45 +146,34 @@ class Client:
         created_at = datetime.fromtimestamp(data["created_at"])
         self._token_expires = created_at + timedelta(seconds=data["expires_in"])
 
-    async def get_anime(self, anime_id: int, *, raw: bool = False, include_nsfw: bool = False) -> Union[Anime, dict]:
+    async def get_anime(self, anime_id: int, *, raw: bool = False, include_nsfw: bool = False) -> Anime:
         """Get information of an anime by ID"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers)
-
-        if raw:
-            return data["data"]
-
         return Anime(payload=data["data"])
 
     async def search_anime(
         self, query: str, limit: int = 1, *, raw: bool = False, include_nsfw: bool = False
-    ) -> Optional[Union[Anime, List[Anime], dict]]:
+    ) -> Optional[Union[Anime, AnimeList]]:
         """Search for an anime"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(
             url=f"{BASE}/anime", params={"filter[text]": query, "page[limit]": str(limit)}, headers=headers
         )
 
-        if raw:
-            return data
-
         if not data["data"]:
-            return None
-        elif len(data["data"]) == 1:
-            return Anime(data["data"][0])
-        else:
-            return [Anime(payload=payload) for payload in data["data"]]
+            return AnimeList()
 
-    async def trending_anime(self, *, raw: bool = False) -> Optional[Union[List[Anime], dict]]:
+        if len(data["data"]) == 1:
+            return Anime(data["data"][0])
+        return AnimeList(payload=data["data"])
+
+    async def trending_anime(self, *, raw: bool = False) -> Optional[AnimeList]:
         """Get treding anime"""
         data = await self._get(f"{BASE}/trending/anime")
-        if raw:
-            return data
-
         if not data["data"]:
-            return None
-        else:
-            return [Anime(payload=payload) for payload in data["data"]]
+            return AnimeList()
+        return AnimeList(payload=data["data"])
 
     async def close(self) -> None:
         """Closes the internal http session"""
