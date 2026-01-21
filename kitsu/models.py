@@ -29,7 +29,7 @@ from typing import Dict, Iterator, List, Literal, Optional
 
 from dateutil.parser import isoparse
 
-__all__ = ["Anime"]
+__all__ = ["Anime", "AnimeList"]
 
 
 class AnimeList:

@@ -7,19 +7,19 @@ A simple async python wrapper for the Kitsu.io API.
 
 """
 
-__title__   = "kitsu"
+__title__ = "kitsu"
 __version__ = "1.0.0"
-__author__  = "MrArkon"
-__license__ = 'MIT'
-__copyright__ = 'Copyright 2021-present MrArkon'
+__author__ = "MrArkon"
+__license__ = "MIT"
+__copyright__ = "Copyright 2021-present MrArkon"
 
-__all__  = ('Client', 'HTTPException', 'BadRequest', 'NotFound', 'Anime')
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
+__all__ = ("Client", "HTTPException", "BadRequest", "NotFound", "Anime", "AnimeList")
+__path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 from logging import NullHandler, getLogger
 
 from .client import Client
 from .errors import BadRequest, HTTPException, NotFound
-from .models import Anime
+from .models import Anime, AnimeList
 
 getLogger(__name__).addHandler(NullHandler())
