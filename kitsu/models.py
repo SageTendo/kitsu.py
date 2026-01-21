@@ -254,7 +254,7 @@ class Genre:
         self._payload: dict = payload
 
     def __repr__(self) -> str:
-        return f"<Genre id={self.id} title='{self.title}'>"
+        return f"<Genre id={self.id} title='{self.name}'>"
 
     @property
     def id(self) -> str:
@@ -262,7 +262,7 @@ class Genre:
         return self._payload.get("id", "")
 
     @property
-    def title(self) -> str:
+    def name(self) -> str:
         """The genre's title."""
         return self._payload.get("attributes", {}).get("name", "")
 
