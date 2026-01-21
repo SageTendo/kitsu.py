@@ -25,41 +25,20 @@ SOFTWARE.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Dict, Iterator, List, Literal, Optional
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional
 
 from dateutil.parser import isoparse
 
-__all__ = ["Anime", "AnimeList"]
+if TYPE_CHECKING:
+    from kitsu.client import Client
 
-
-class AnimeList:
-    def __init__(self, payload: Optional[list[dict]] = None) -> None:
-        self._payload: list[dict] = payload or []
-
-    def __repr__(self) -> str:
-        return f"<AnimeList length={len(self._payload)}>"
-
-    def __len__(self) -> int:
-        return len(self._payload)
-
-    def __iter__(self) -> Iterator[Anime]:
-        for anime in self._payload:
-            yield Anime(anime)
-
-    def __getitem__(self, index: int) -> Anime:
-        return Anime(self._payload[index])
-
-    def __contains__(self, anime: Anime) -> bool:
-        return anime.id in self._payload
-
-    @property
-    def raw(self) -> list[dict]:
-        return self._payload
+__all__ = ["Anime", "Genre"]
 
 
 class Anime:
-    def __init__(self, payload: dict) -> None:
+    def __init__(self, payload: dict, client: Optional[Client] = None) -> None:
         self._payload: dict = payload
+        self._client: Optional[Client] = client
 
     def __repr__(self) -> str:
         return f"<Anime id={self.id} title='{self.title}'>"
@@ -235,12 +214,62 @@ class Anime:
             return None
 
     @property
+    def total_length(self) -> Optional[int]:
+        """length of the anime in minutes"""
+        try:
+            return int(self._payload["attributes"]["totalLength"])
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+
+    @property
     def youtube_video_id(self) -> Optional[str]:
         return self._payload["attributes"].get("youtubeVideoId", None)
 
     @property
-    def nsfw(self) -> Optional[bool]:
-        return self._payload["attributes"].get("nsfw", None)
+    def nsfw(self) -> bool:
+        return self._payload["attributes"].get("nsfw", False)
+
+    @property
+    def raw(self) -> dict:
+        return self._payload
+
+    async def genres(self) -> Optional[List[Genre]]:
+        """Returns a list of categories"""
+        if not self._client:
+            raise RuntimeError("Client is not bound to Anime object")
+
+        try:
+            url = self._payload["relationships"]["genres"]["links"]["related"]
+            return await self._client._get_genres(url, include_nsfw=self.nsfw)
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+
+
+class Genre:
+    def __init__(self, payload: dict) -> None:
+        self._payload: dict = payload
+
+    def __repr__(self) -> str:
+        return f"<Genre id={self.id} title='{self.title}'>"
+
+    @property
+    def id(self) -> str:
+        """The genre's ID."""
+        return self._payload.get("id", "")
+
+    @property
+    def title(self) -> str:
+        """The genre's title."""
+        return self._payload.get("attributes", {}).get("name", "")
+
+    @property
+    def slug(self) -> str:
+        """The genre's slug."""
+        return self._payload.get("attributes", {}).get("slug", "")
 
     @property
     def raw(self) -> dict:

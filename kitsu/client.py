@@ -26,12 +26,12 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import aiohttp
 
 from .errors import BadRequest, Forbidden, HTTPException, NotFound, Unauthorized
-from .models import Anime, AnimeList
+from .models import Anime, Genre
 
 __all__ = ("Client",)
 __log__: logging.Logger = logging.getLogger(__name__)
@@ -150,15 +150,19 @@ class Client:
         created_at = datetime.fromtimestamp(data["created_at"])
         self._token_expires = created_at + timedelta(seconds=data["expires_in"])
 
-    async def get_anime(self, anime_id: int, *, raw: bool = False, include_nsfw: bool = False) -> Anime:
+    async def get_anime(self, anime_id: int, *, include_nsfw: bool = False) -> Anime:
         """Get information of an anime by ID"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers)
-        return Anime(payload=data["data"])
+        return Anime(payload=data["data"], client=self)
+    
+    async def _get_genres(self, url: str, *, include_nsfw: bool = False) -> list[Genre]:
+        """Get anime's genres"""
+        headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
+        data = await self._get(url=url, headers=headers)
+        return [Genre(genre) for genre in data["data"]]
 
-    async def search_anime(
-        self, query: str, limit: int = 1, *, raw: bool = False, include_nsfw: bool = False
-    ) -> Optional[Union[Anime, AnimeList]]:
+    async def search_anime(self, query: str, limit: int = 1, *, include_nsfw: bool = False) -> list[Anime]:
         """Search for an anime"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(
@@ -166,18 +170,18 @@ class Client:
         )
 
         if not data["data"]:
-            return AnimeList()
+            return []
 
         if len(data["data"]) == 1:
-            return Anime(data["data"][0])
-        return AnimeList(payload=data["data"])
+            return [Anime(data["data"][0], client=self)]
+        return [Anime(anime, client=self) for anime in data["data"]]
 
-    async def trending_anime(self, *, raw: bool = False) -> Optional[AnimeList]:
+    async def trending_anime(self, *, raw: bool = False) -> Optional[list[Anime]]:
         """Get treding anime"""
         data = await self._get(f"{BASE}/trending/anime")
         if not data["data"]:
-            return AnimeList()
-        return AnimeList(payload=data["data"])
+            return []
+        return [Anime(anime, client=self) for anime in data["data"]]
 
     async def close(self) -> None:
         """Closes the internal http session"""
