@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -45,6 +46,24 @@ class BadRequest(HTTPException):
         self.response: ClientResponse = response
         self.message: str = message
         super().__init__(response, message, 400)
+
+
+class Unauthorized(HTTPException):
+    """An exception for when the request is unauthorized."""
+
+    def __init__(self, response: ClientResponse, message: str) -> None:
+        self.response: ClientResponse = response
+        self.message: str = message
+        super().__init__(response, message, 401)
+
+
+class Forbidden(HTTPException):
+    """An exception for when the request is forbidden."""
+
+    def __init__(self, response: ClientResponse, message: str) -> None:
+        self.response: ClientResponse = response
+        self.message: str = message
+        super().__init__(response, message, 403)
 
 
 class NotFound(HTTPException):

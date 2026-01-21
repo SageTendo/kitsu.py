@@ -26,11 +26,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 import aiohttp
 
-from .errors import BadRequest, HTTPException, NotFound
+from .errors import BadRequest, Forbidden, HTTPException, NotFound, Unauthorized
 from .models import Anime, AnimeList
 
 __all__ = ("Client",)
@@ -112,6 +112,10 @@ class Client:
 
             if response.status == 400:
                 raise BadRequest(response, data["errors"][0]["detail"])
+            if response.status == 401:
+                raise Unauthorized(response, data["error_description"])
+            if response.status == 403:
+                raise Forbidden(response, data["error_description"])
             if response.status == 404:
                 raise NotFound(response, data["errors"][0]["detail"])
 
