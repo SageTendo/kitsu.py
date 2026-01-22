@@ -241,9 +241,10 @@ class Anime:
             raise RuntimeError("Client is not bound to Anime object")
 
         try:
-            url = self._payload["relationships"]["genres"]["links"]["related"]
-            return await self._client._get_genres(url, include_nsfw=self.nsfw)
+            return await self._client.get_anime_genres(int(self.id), include_nsfw=self.nsfw)
         except KeyError:
+            return None
+        except ValueError:
             return None
         except TypeError:
             return None

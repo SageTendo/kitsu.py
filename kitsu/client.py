@@ -155,11 +155,11 @@ class Client:
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers)
         return Anime(payload=data["data"], client=self)
-    
-    async def _get_genres(self, url: str, *, include_nsfw: bool = False) -> list[Genre]:
+
+    async def get_anime_genres(self, anime_id: int, *, include_nsfw: bool = False) -> list[Genre]:
         """Get anime's genres"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
-        data = await self._get(url=url, headers=headers)
+        data = await self._get(url=f"{BASE}/anime/{anime_id}/genres", headers=headers)
         return [Genre(genre) for genre in data["data"]]
 
     async def search_anime(self, query: str, limit: int = 1, *, include_nsfw: bool = False) -> list[Anime]:
@@ -176,7 +176,7 @@ class Client:
             return [Anime(data["data"][0], client=self)]
         return [Anime(anime, client=self) for anime in data["data"]]
 
-    async def trending_anime(self, *, raw: bool = False) -> Optional[list[Anime]]:
+    async def trending_anime(self, *, raw: bool = False) -> list[Anime]:
         """Get treding anime"""
         data = await self._get(f"{BASE}/trending/anime")
         if not data["data"]:
