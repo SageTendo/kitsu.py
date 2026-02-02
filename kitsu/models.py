@@ -85,6 +85,14 @@ class Anime:
                 return value
 
     @property
+    def japanese_title(self) -> Optional[str]:
+        return self._payload["attributes"].get("titles").get("en_jp", None)
+
+    @property
+    def romaji_title(self) -> Optional[str]:
+        return self._payload["attributes"].get("titles").get("ja_jp", None)
+
+    @property
     def canonical_title(self) -> Optional[str]:
         return self._payload["attributes"].get("canonicalTitle", None)
 

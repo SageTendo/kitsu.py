@@ -161,7 +161,7 @@ class Client:
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(url=f"{BASE}/anime/{anime_id}/genres", headers=headers)
         return [Genre(genre) for genre in data["data"]]
-    
+
     async def _get_genre_relations(self, relations_url: str, *, include_nsfw: bool = False) -> list[Genre]:
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(url=relations_url, headers=headers)
