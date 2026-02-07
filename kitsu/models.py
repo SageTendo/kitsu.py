@@ -350,9 +350,9 @@ class Episode:
             return None
 
     @property
-    def airdate(self) -> Optional[datetime]:
+    def air_date(self) -> Optional[datetime]:
         try:
-            return datetime.strptime(self._payload["attributes"]["airdate"], "%Y-%m-%d")
+            return isoparse(self._payload["attributes"]["airdate"])
         except KeyError:
             return None
         except TypeError:
