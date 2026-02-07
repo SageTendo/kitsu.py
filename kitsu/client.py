@@ -92,24 +92,29 @@ class Client:
 
             raise HTTPException(response, await response.text(), response.status)
 
+    def _build_query(self, url, params: dict) -> str:
+        if not params:
+            return url
+        return f"{url}?" + "&".join([f"{key}={value}" for key, value in params.items()])
+
     async def _get(self, url: str, **kwargs: Any) -> Any:
         """Performs a GET request to the Kitsu API"""
-
         headers = kwargs.pop("headers", {})
         headers["Accept"] = "application/vnd.api+json"
         headers["Content-Type"] = "application/vnd.api+json"
         headers["User-Agent"] = "Kitsu.py (https://github.com/SageTendo/kitsu.py)"
         kwargs["headers"] = headers
-
         __log__.debug("Request Headers: %s", headers)
         __log__.debug("Request URL: %s", url)
+
+        params = kwargs.pop("params", {})
+        url = self._build_query(url, params)
 
         async with self._session.get(url=url, **kwargs) as response:
             data = await response.json()
 
             if response.status == 200:
                 return data
-
             if response.status == 400:
                 raise BadRequest(response, data["errors"][0]["detail"])
             if response.status == 401:
@@ -150,11 +155,11 @@ class Client:
         created_at = datetime.fromtimestamp(data["created_at"])
         self._token_expires = created_at + timedelta(seconds=data["expires_in"])
 
-    async def get_anime(self, anime_id: int, *, include_nsfw: bool = False) -> Anime:
+    async def get_anime(self, anime_id: int, *, include_nsfw: bool = False, params: dict = {}) -> Anime:
         """Get information of an anime by ID"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
-        data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers)
-        return Anime(payload=data["data"], client=self)
+        data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers, params=params)
+        return Anime(payload=data, client=self)
 
     async def get_anime_genres(self, anime_id: int, *, include_nsfw: bool = False) -> list[Genre]:
         """Get anime's genres"""
@@ -167,13 +172,18 @@ class Client:
         data = await self._get(url=relations_url, headers=headers)
         return [Genre(genre) for genre in data["data"]]
 
-    async def search_anime(self, query: str, limit: int = 1, *, include_nsfw: bool = False) -> list[Anime]:
+    async def search_anime(
+        self, query: str, limit: int = 1, *, include_nsfw: bool = False, params: dict = {}
+    ) -> list[Anime]:
         """Search for an anime"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
-        data = await self._get(
-            url=f"{BASE}/anime", params={"filter[text]": query, "page[limit]": str(limit)}, headers=headers
-        )
+        search_params = {
+            "filter[text]": query,
+            "page[limit]": str(limit),
+            **params,
+        }
 
+        data = await self._get(url=f"{BASE}/anime", params=search_params, headers=headers)
         if not data["data"]:
             return []
 
@@ -181,9 +191,9 @@ class Client:
             return [Anime(data["data"][0], client=self)]
         return [Anime(anime, client=self) for anime in data["data"]]
 
-    async def trending_anime(self, *, raw: bool = False) -> list[Anime]:
+    async def trending_anime(self, *, raw: bool = False, params: dict = {}) -> list[Anime]:
         """Get treding anime"""
-        data = await self._get(f"{BASE}/trending/anime")
+        data = await self._get(f"{BASE}/trending/anime", params=params)
         if not data["data"]:
             return []
         return [Anime(anime, client=self) for anime in data["data"]]
