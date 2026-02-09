@@ -25,21 +25,18 @@ SOFTWARE.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from dateutil.parser import isoparse
 
-if TYPE_CHECKING:
-    from kitsu.client import Client
 
 __all__ = ["Anime", "Genre"]
 
 
 class Anime:
-    def __init__(self, payload: dict, client: Optional[Client] = None) -> None:
+    def __init__(self, payload: dict) -> None:
         self._payload: dict = payload.get("data", {}) or payload
         self._included_payload: dict = payload.get("included", [])
-        self._client: Optional[Client] = client
 
     def __repr__(self) -> str:
         return f"<Anime id={self.id} title='{self.title}'>"
@@ -98,8 +95,8 @@ class Anime:
         return self._payload["attributes"].get("canonicalTitle", None)
 
     @property
-    def abbreviated_titles(self) -> Optional[List[str]]:
-        return self._payload["attributes"].get("abbreviatedTitles", None)
+    def abbreviated_titles(self) -> List[str]:
+        return self._payload["attributes"].get("abbreviatedTitles", [])
 
     @property
     def average_rating(self) -> Optional[float]:
@@ -204,15 +201,15 @@ class Anime:
             return None
 
     @property
-    def episodes(self) -> Optional[List[Episode]]:
+    def episodes(self) -> List[Episode]:
         """Returns a list of episodes"""
         try:
             included = self._included_payload or []
             return [Episode(episode) for episode in included if episode["type"] == "episodes"]
         except KeyError:
-            return None
+            return []
         except TypeError:
-            return None
+            return []
 
     @property
     def episode_count(self) -> Optional[int]:
@@ -255,18 +252,11 @@ class Anime:
     def raw(self) -> dict:
         return self._payload
 
-    async def genres(self) -> Optional[List[Genre]]:
+    @property
+    def genres(self) -> List[Genre]:
         """Returns a list of categories"""
-        if not self._client:
-            raise RuntimeError("Client is not bound to Anime object")
-
-        try:
-            url = self._payload["relationships"]["genres"]["links"]["related"]
-            return await self._client._get_genre_relations(url, include_nsfw=self.nsfw)
-        except KeyError:
-            return None
-        except TypeError:
-            return None
+        included = self._included_payload or []
+        return [Genre(item) for item in included if item["type"] == "genres"]
 
 
 class Episode:

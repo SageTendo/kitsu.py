@@ -159,7 +159,7 @@ class Client:
         """Get information of an anime by ID"""
         headers = {"Authorization": f"Bearer {self._token}"} if include_nsfw else {}
         data = await self._get(url=f"{BASE}/anime/{anime_id}", headers=headers, params=params)
-        return Anime(payload=data, client=self)
+        return Anime(payload=data)
 
     async def get_anime_genres(self, anime_id: int, *, include_nsfw: bool = False) -> list[Genre]:
         """Get anime's genres"""
@@ -188,15 +188,15 @@ class Client:
             return []
 
         if len(data["data"]) == 1:
-            return [Anime(data["data"][0], client=self)]
-        return [Anime(anime, client=self) for anime in data["data"]]
+            return [Anime(data["data"][0])]
+        return [Anime(anime) for anime in data["data"]]
 
     async def trending_anime(self, *, raw: bool = False, params: dict = {}) -> list[Anime]:
         """Get treding anime"""
         data = await self._get(f"{BASE}/trending/anime", params=params)
         if not data["data"]:
             return []
-        return [Anime(anime, client=self) for anime in data["data"]]
+        return [Anime(anime) for anime in data["data"]]
 
     async def close(self) -> None:
         """Closes the internal http session"""
