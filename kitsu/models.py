@@ -213,13 +213,13 @@ class Anime:
     ) -> Optional[str]:
         try:
             return self._payload["attributes"]["posterImage"].get(_type)
-        except AttributeError:
+        except KeyError:
             return None
 
     def cover_image(self, _type: Optional[Literal["tiny", "small", "large", "original"]] = "original") -> Optional[str]:
         try:
             return self._payload["attributes"]["coverImage"].get(_type)
-        except AttributeError:
+        except KeyError:
             return None
 
     @property
