@@ -52,28 +52,28 @@ class Anime:
     def created_at(self) -> Optional[datetime]:
         try:
             return isoparse(self._payload["attributes"]["createdAt"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def updated_at(self) -> Optional[datetime]:
         try:
             return isoparse(self._payload["attributes"]["updatedAt"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def slug(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["slug"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def synopsis(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["synopsis"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
@@ -86,126 +86,126 @@ class Anime:
                 if titles.get(key):
                     return titles[key]
             return self.canonical_title
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def japanese_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["titles"].get("en_jp")
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def romaji_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["titles"].get("ja_jp")
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def canonical_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["canonicalTitle"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def abbreviated_titles(self) -> List[str]:
         try:
             return self._payload["attributes"]["abbreviatedTitles"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return []
 
     @property
     def average_rating(self) -> Optional[float]:
         try:
             return float(self._payload["attributes"]["averageRating"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def rating_frequencies(self) -> Optional[Dict[str, str]]:
         try:
             return self._payload["attributes"]["ratingFrequencies"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def user_count(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["userCount"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def favorites_count(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["favoritesCount"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def start_date(self) -> Optional[datetime]:
         try:
             return datetime.strptime(self._payload["attributes"]["startDate"], "%Y-%m-%d")
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def end_date(self) -> Optional[datetime]:
         try:
             return datetime.strptime(self._payload["attributes"]["endDate"], "%Y-%m-%d")
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def popularity_rank(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["popularityRank"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def rating_rank(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["ratingRank"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def age_rating(self) -> Optional[Literal["G", "PG", "R", "R18"]]:
         try:
             return self._payload["attributes"]["ageRating"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def age_rating_guide(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["ageRatingGuide"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def subtype(self) -> Optional[Literal["ONA", "OVA", "TV", "movie", "music", "special"]]:
         try:
             return self._payload["attributes"]["subtype"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def status(self) -> Optional[Literal["current", "finished", "tba", "unreleased", "upcoming"]]:
         try:
             return self._payload["attributes"]["status"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def tba(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["tba"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     def poster_image(
@@ -213,13 +213,13 @@ class Anime:
     ) -> Optional[str]:
         try:
             return self._payload["attributes"]["posterImage"].get(_type)
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     def cover_image(self, _type: Optional[Literal["tiny", "small", "large", "original"]] = "original") -> Optional[str]:
         try:
             return self._payload["attributes"]["coverImage"].get(_type)
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
@@ -233,7 +233,7 @@ class Anime:
         try:
             included = self._included_payload or []
             return [Episode(item) for item in included if item["type"] == "episodes"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return []
         except TypeError:
             return []
@@ -242,28 +242,28 @@ class Anime:
     def episode_count(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["episodeCount"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def episode_length(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["episodeLength"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def total_length(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["totalLength"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def yt_video_id(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["youtubeVideoId"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
@@ -271,7 +271,7 @@ class Anime:
         """Returns True if the anime is NSFW. Otherwise, False. Defaults to False when not present in the API response."""
         try:
             return self._payload["attributes"]["nsfw"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return False
 
     @property
@@ -299,98 +299,98 @@ class Episode:
     def created_at(self) -> Optional[datetime]:
         try:
             return isoparse(self._payload["attributes"]["createdAt"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def updated_at(self) -> Optional[datetime]:
         try:
             return isoparse(self._payload["attributes"]["updatedAt"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def synopsis(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["synopsis"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def description(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["description"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def english_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["titles"].get("en_us")
-        except KeyError:
+        except (KeyError, AttributeError):
             return f"Episode {self.number}" if self.number else None
 
     @property
     def japanese_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["titles"].get("en_jp")
-        except KeyError:
+        except (KeyError, AttributeError):
             return f"Episode {self.number}" if self.number else None
 
     @property
     def romaji_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["titles"].get("ja_jp")
-        except KeyError:
+        except (KeyError, AttributeError):
             return f"Episode {self.number}" if self.number else None
 
     @property
     def canonical_title(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["canonicalTitle"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return f"Episode {self.number}" if self.number else None
 
     @property
     def season(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["seasonNumber"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def number(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["number"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def relative_number(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["relativeNumber"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def air_date(self) -> Optional[datetime]:
         try:
             return isoparse(self._payload["attributes"]["airdate"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def length(self) -> Optional[int]:
         try:
             return int(self._payload["attributes"]["length"])
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
     def thumbnail(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["thumbnail"]["original"]
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError, ValueError):
             return None
 
     @property
@@ -421,14 +421,14 @@ class Genre:
     def name(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["name"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
     def slug(self) -> Optional[str]:
         try:
             return self._payload["attributes"]["slug"]
-        except KeyError:
+        except (KeyError, AttributeError):
             return None
 
     @property
